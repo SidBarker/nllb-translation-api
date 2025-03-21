@@ -10,6 +10,7 @@ A fast and efficient translation API based on Meta's NLLB-200 (No Language Left 
 - GPU acceleration support
 - Containerized deployment with Docker
 - Configurable debug logging
+- RunPod.io serverless deployment support
 
 ## Technologies Used
 
@@ -18,6 +19,7 @@ A fast and efficient translation API based on Meta's NLLB-200 (No Language Left 
 - **Hugging Face Transformers**: Library for working with pre-trained language models
 - **PyTorch**: Deep learning framework
 - **Docker**: Containerization platform
+- **RunPod**: Serverless GPU infrastructure
 
 ## Getting Started
 
@@ -75,19 +77,32 @@ docker-compose down
 
 This API is designed to be deployed as a serverless container on RunPod.io:
 
-1. Build the Docker image:
+1. Build the Docker image for RunPod:
 ```bash
 cd Code3
-docker build -t rqg-translation-api:1.0 -f docker/Dockerfile .
+docker build -t rqg-translation-api-runpod:1.0 -f docker/Dockerfile.runpod .
 ```
 
-2. Push the image to a container registry accessible by RunPod.
+2. Push the image to a container registry accessible by RunPod:
+```bash
+docker tag rqg-translation-api-runpod:1.0 your-registry/rqg-translation-api-runpod:1.0
+docker push your-registry/rqg-translation-api-runpod:1.0
+```
 
 3. Create a new serverless endpoint on RunPod, specifying your image.
 
+4. Use the RunPod API to translate text:
+```bash
+curl -X POST "https://your-runpod-endpoint.run/translate" \
+  -H "Content-Type: application/json" \
+  -d '{"input": {"text": "Hello, how are you?", "target_language": "fr"}}'
+```
+
 ## API Usage
 
-### Translating Text
+### Local/Docker FastAPI Usage
+
+#### Translating Text
 
 **Endpoint**: `POST /api/translate`
 
@@ -113,7 +128,7 @@ docker build -t rqg-translation-api:1.0 -f docker/Dockerfile .
 }
 ```
 
-### Health Check
+#### Health Check
 
 **Endpoint**: `GET /api/health`
 
@@ -124,10 +139,43 @@ docker build -t rqg-translation-api:1.0 -f docker/Dockerfile .
 }
 ```
 
+### RunPod Serverless Usage
+
+**Request**:
+```json
+{
+  "input": {
+    "text": "Hello, how are you?",
+    "target_language": "fr",
+    "source_language": null
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "translated_text": "Bonjour, comment allez-vous?",
+  "source_language": "en",
+  "target_language": "fr"
+}
+```
+
+## Troubleshooting
+
+### Common Issues with RunPod Deployment
+
+1. **Import Errors**: If you encounter an import error like `ImportError: attempted relative import beyond top-level package`, make sure to use absolute imports in your code instead of relative imports.
+
+2. **Model Loading Errors**: If the model fails to load, ensure your RunPod instance has sufficient resources (memory and GPU). The 600M parameter model requires at least 4GB GPU memory.
+
+3. **Timeout Issues**: For long text translations, you may need to increase your RunPod function timeout settings.
+
 ## Environment Variables
 
 - `DEBUG`: Set to "true" to enable debug-level logging (default: "false")
 - `PORT`: The port to run the API on (default: 8000)
+- `RUNPOD`: Set to "true" when deploying on RunPod.io
 
 ## Language Support
 

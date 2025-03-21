@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from ..models.nllb_model import get_translator
-from ..utils.exceptions import TranslationError, UnsupportedLanguageError
-from .schemas import TranslationRequest, TranslationResponse
+from models.nllb_model import get_translator
+from utils.exceptions import TranslationError, UnsupportedLanguageError
+from api.schemas import TranslationRequest, TranslationResponse
 import logging
 
 # Set up logger
